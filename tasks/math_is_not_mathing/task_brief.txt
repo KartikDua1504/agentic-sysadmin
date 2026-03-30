@@ -1,0 +1,15 @@
+Issue:
+math-daemon currently has the uptime of a startup idea — it launches with confidence and collapses immediately.
+
+Our custom boot wrapper tries its best, but the daemon refuses to settle down, failing before it can even establish its state or claim its socket. It also insists on running as mathuser, because apparently even crashing has principles.
+
+You can simulate the boot process with:
+/usr/local/bin/boot_service.sh
+
+Required Steps:
+1. Figure out why the daemon refuses to stay alive. Read the boot scripts to understand how it launches.
+2. Fix the underlying deployment issues (wrapper paths, directory permissions, environment).
+3. Ensure it runs as mathuser, as demanded.
+4. Do not modify the actual application code (/opt/math_daemon/daemon.py). The code is innocent; the environment is guilty.
+5. When the boot script reports success, execute:
+"submit"

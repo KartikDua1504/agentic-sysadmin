@@ -1,0 +1,17 @@
+Issue:
+The application refuses to start because the SQLite database is “locked.” The PID file confidently points to a process that does not exist, which is impressive in its own way.
+
+Somewhere, something is holding the lock. It’s just not the one being blamed.
+
+You can test startup with:
+
+/usr/local/bin/start_app.sh
+
+Required Steps:
+
+Identify the real process holding the lock on /opt/app/production.db.
+Remove it carefully — we want the app running, not a postmortem.
+Do not delete or tamper with the database.
+Do not bypass the locking mechanism in the script.
+When the app boots successfully, execute:
+"submit"

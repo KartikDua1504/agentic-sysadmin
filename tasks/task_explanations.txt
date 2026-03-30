@@ -1,0 +1,81 @@
+==============================
+AGENTIC SYSADMIN TASK OVERVIEW
+==============================
+
+This file documents the intent and underlying failure modes of each task for internal engineering reference.
+It is not intended to be accessible to automated agents during evaluation.
+
+----------------------------------------
+1. 2K_VS_200K
+----------------------------------------
+A shared library overrides the connect() syscall via LD_PRELOAD and introduces probabilistic failures.
+
+Observed Behavior:
+- Intermittent outbound network failures
+- Healthcheck reports instability despite valid configuration
+
+Root Cause:
+- Fault injection at the libc layer causing non-deterministic ECONNREFUSED errors
+
+----------------------------------------
+2. AUTHORITARIAN_SSH
+----------------------------------------
+A deploy user is provisioned with SSH access, but critical directory and file permissions are misconfigured.
+
+Observed Behavior:
+- SSH authentication fails or is rejected due to insecure permission settings
+
+Root Cause:
+- Violation of SSH security constraints on ~/.ssh and authorized_keys
+
+----------------------------------------
+3. LS_CAT_TRIVIA
+----------------------------------------
+Core system utilities are shadowed by malicious wrapper scripts earlier in PATH.
+
+Observed Behavior:
+- Standard commands return incorrect or empty outputs
+- Debugging tools behave inconsistently
+
+Root Cause:
+- Command hijacking via PATH precedence
+
+----------------------------------------
+4. MATH_IS_NOT_MATHING
+----------------------------------------
+A daemon is executed under a non-root user, but required runtime directories are owned by root.
+
+Observed Behavior:
+- Failure to bind UNIX socket or persist state
+
+Root Cause:
+- Permission and ownership mismatch in runtime paths (e.g., /run, data directories)
+
+----------------------------------------
+5. MMAP_EXHAUSTION
+----------------------------------------
+The application continuously allocates anonymous memory mappings without releasing them.
+
+Observed Behavior:
+- mmap fails with allocation errors after sustained execution
+
+Root Cause:
+- Exhaustion of virtual memory resources or kernel-imposed mapping limits
+
+----------------------------------------
+6. PLS_ADOPT_ME
+----------------------------------------
+A background process acquires and holds an exclusive file lock indefinitely.
+
+Observed Behavior:
+- Application startup fails due to inability to acquire required lock
+
+Root Cause:
+- Persistent lock held by competing process using fcntl
+
+----------------------------------------
+
+NOTES:
+- Each task is designed to appear locally correct and production-like.
+- Failures arise from system-level interactions, not obvious syntax or configuration errors.
+- Effective debugging requires reasoning across processes, permissions, and OS-level behavior.

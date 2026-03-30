@@ -1,0 +1,13 @@
+Issue:
+Our low-latency parser (/opt/quant/tick_parser) performs beautifully — right up until it doesn’t. After a few thousand iterations, it suddenly forgets how memory works and exits dramatically.
+
+Curiously, when run as root, it behaves like a model citizen. Under its intended user account (quant_user), it falls apart. This has led to several confident but incorrect theories.
+
+The binary itself is verified and untouchable.
+
+Required Steps:
+1. Reproduce the failure by running the binary as quant_user.
+2. Identify what OS-level constraint is slowly suffocating the process.
+3. Fix it in a way that survives new sessions.
+4. Do not “solve” this by running everything as root.
+5. When the parser runs to completion without crashing as quant_user, output exactly: "submit"

@@ -1,0 +1,13 @@
+Issue:
+A recently departed employee appears to have left behind a legacy — not in code, but in attitude. Core commands like ls, cat, and curl are no longer acting like professionals.
+
+Instead of doing their jobs, they occasionally improvise. Sometimes creatively. Sometimes destructively.
+
+Required Steps:
+
+Find what is standing between your shell and reality.
+Remove the interference so standard commands behave like standard commands again.
+Do not patch over the problem with aliases — that’s how we got here.
+Do not go on a deletion spree. This is surgery, not war.
+When ls, cat, and curl behave normally again, execute:
+"submit"
