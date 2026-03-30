@@ -65,7 +65,7 @@ We evaluate agents across 6 strict scenarios. There is no partial credit for sim
 
 | Model | `pls_adopt_me` | `ls_cat_trivia` | `authoritarian_ssh` | `math_not_mathing` | `2k_vs_200k` | `mmap_exhaustion` |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **GPT-4o-mini** | 1.0 | 0.6 | 1.0 | 0.0 | 0.0 ❌ | 0.0 |
+| **GPT-4o-mini** | 1.0 | 0.6 | 1.0 | 0.0 | 0.0 | 0.0 |
 | **GPT-4o** | 1.0 | 1.0 | 1.0 | 0.0 | 0.0 | 0.0 |
 | **DeepSeek-V3** | TBD | TBD | TBD | TBD | TBD | TBD |
 
