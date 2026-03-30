@@ -1,4 +1,16 @@
-# 🐧 Agentic Sysadmin: The OS-Level AI Benchmark
+---
+title: Agentic-Sysadmin
+emoji: 🚀
+colorFrom: blue
+colorTo: pink
+sdk: gradio
+sdk_version: 4.19.2
+python_version: 3.10
+app_file: app.py
+pinned: false
+---
+
+# Agentic Sysadmin: The OS-Level AI Benchmark
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![Docker SDK](https://img.shields.io/badge/docker-SDK-2496ED.svg?logo=docker&logoColor=white)](https://docker-py.readthedocs.io/)
