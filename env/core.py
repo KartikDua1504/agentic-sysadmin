@@ -103,12 +103,12 @@ class LinuxAdminEnv:
         return obs, reward, done, {}
 
     def _run(self, command: str) -> str:
-    """
-    A silent execution helper specifically built for Graders.
-    Allows the grading logic to probe the container (e.g., check file existence) 
-    without polluting the agent's stdout/stderr history.
-    Also handles the Docker SDK's inconsistent return types (bytes vs tuples).
-    """
+        """
+        A silent execution helper specifically built for Graders.
+        Allows the grading logic to probe the container (e.g., check file existence) 
+        without polluting the agent's stdout/stderr history.
+        Also handles the Docker SDK's inconsistent return types (bytes vs tuples).
+        """
         if self.container is None:
             raise RuntimeError("Container is not running")
 
