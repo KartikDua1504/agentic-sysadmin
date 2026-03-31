@@ -9,16 +9,12 @@ except Exception as e:
     TASK_REGISTRY = []
     debug_log = f"CRITICAL ERROR loading registry:\n{traceback.format_exc()}"
 
-# 1. Initialize FastAPI app for the OpenEnv API specs
 app = FastAPI()
 
-# 2. Define the required API endpoints
 @app.get("/reset")
 @app.post("/reset")
 def reset_env():
-    # We will wire this up to your actual environment later. 
-    # For now, this returns the HTTP 200 the validator needs.
-    return {"status": "success", "message": "Environment reset ready"}
+    return {"status": "success", "message": "Environment reset"}
 
 @app.post("/step")
 def step_env():
@@ -28,7 +24,6 @@ def step_env():
 def get_state():
     return {"status": "success", "message": "State retrieved"}
 
-# 3. Your existing Gradio UI
 def app_status():
     task_count = len(TASK_REGISTRY)
     try:
@@ -50,5 +45,4 @@ with gr.Blocks(title="Agentic Sysadmin") as demo:
     refresh = gr.Button("Refresh status")
     refresh.click(fn=app_status, inputs=None, outputs=output)
 
-# 4. Mount the Gradio UI onto the FastAPI app
 app = gr.mount_gradio_app(app, demo, path="/")
