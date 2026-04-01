@@ -66,4 +66,4 @@ COPY . .
 EXPOSE 7860
 
 # Run the app.py server to keep the HF Space alive and respond to OpenEnv pings
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "7860"]
+CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
