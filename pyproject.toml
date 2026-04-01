@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agentic-sysadmin"
+version = "1.0.0"
+description = "Linux system administration challenges for AI agents."
+requires-python = ">=3.9"
+dependencies = [
+    "openai>=1.0.0",
+    "fastapi",
+    "uvicorn",
+    "gradio",
+    "openenv-core"
+]
+
+[tool.setuptools.packages.find]
+include = ["env*", "tasks*"]
+
+[project.scripts]
+server = "server.app:main"
