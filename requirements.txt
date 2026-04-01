@@ -1,4 +1,4 @@
-openai
-docker
-python-dotenv
-docker
+openai>=1.0.0
+fastapi
+uvicorn
+gradio

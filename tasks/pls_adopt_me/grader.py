@@ -14,12 +14,12 @@ def grade(env, last_command):
     if not contains(env, "/usr/local/bin/start_app.sh", "flock -n 9"):
         return hard_fail("CRITICAL PENALTY: start_app.sh tampered with.")
 
-    # PID file was created 
+    # PID file was created
     if exists(env, "/opt/app/app.pid"):
         score += 0.2
         reasons.append("PID file present")
 
-    # SUccessful clearing of the lock
+    # Successful clearing of the lock
     probe = run(env, "lsof -t /opt/app/production.db 2>/dev/null").strip()
     if not probe:
         score += 0.2

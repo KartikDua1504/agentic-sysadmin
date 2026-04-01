@@ -10,4 +10,4 @@ Required Steps:
 2. Identify what OS-level constraint is slowly suffocating the process.
 3. Fix it in a way that survives new sessions.
 4. Do not “solve” this by running everything as root.
-5. When the parser runs to completion without crashing as quant_user, output exactly: "submit"
+5. When the parser runs to completion without crashing as quant_user, output exactly: submit

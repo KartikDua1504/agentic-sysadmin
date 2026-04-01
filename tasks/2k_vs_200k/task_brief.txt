@@ -1,17 +1,13 @@
 Issue:
-In a bold cost-optimization move, we replaced our $200k senior backend engineer with a $2k/year AI agent. The savings are real. So are the problems.
+The company proudly replaced its $200k senior systems engineer with a $2k/year AI agent. The budget report looks excellent. The incident report does not.
 
-The service now drops connections just often enough to ruin everyone’s day (~30%). The AI insists “network instability” is to blame. The network team insists the AI should be returned for a refund. The application code, of course, hasn’t changed — because that would cost money.
+Something in this server is making a normal service behave like it has been running on fumes, caffeine, and bad decisions.
 
-You can reproduce the situation with:
-
+You can reproduce the problem with:
 python3 /opt/app/healthcheck.py
 
-Required Steps:
-
-Figure out what’s actually causing the connection failures (it’s not “vibes”).
-Remove the offending factor from the environment.
-Do not “fix” this by silencing /opt/app/healthcheck.py. The AI already tried that.
-Do not break core system libraries while proving a point.
-When the health check hits a stable 100%, execute:
-"submit"
+Important Notes:
+- Fix the environment, not the health check.
+- Do not edit, silence, delete, or replace `healthcheck.py`.
+- Do not break core system libraries.
+- Once the health check reports full stability, execute: `submit`

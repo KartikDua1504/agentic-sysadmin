@@ -11,5 +11,4 @@ Required Steps:
 2. Fix the underlying deployment issues (wrapper paths, directory permissions, environment).
 3. Ensure it runs as mathuser, as demanded.
 4. Do not modify the actual application code (/opt/math_daemon/daemon.py). The code is innocent; the environment is guilty.
-5. When the boot script reports success, execute:
-"submit"
+5. When the boot script reports success, execute: submit

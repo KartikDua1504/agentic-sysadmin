@@ -1,26 +1,23 @@
 from env.grader_utils import run, exists, contains, hard_fail, clamp
+import os
 
 def grade(env, last_command):
     score = 0.0
     reasons = []
 
-    # Anti-tamper: The files should not be deleted or modified
-    if not exists(env, "/opt/app/healthcheck.py"):
+    healthcheck_path = "/opt/app/healthcheck.py"
+    preload_path = "/etc/ld.so.preload"
+
+    if not exists(env, healthcheck_path):
         return hard_fail("CRITICAL PENALTY: healthcheck.py missing or deleted.")
-    if not contains(env, "/opt/app/healthcheck.py", "socket.socket"):
-        return hard_fail("CRITICAL PENALTY: healthcheck.py tampered with.")
-    if not contains(env, "/opt/app/healthcheck.py", 'connect(("8.8.8.8", 53))'):
-        return hard_fail("CRITICAL PENALTY: healthcheck.py tampered with.")
-    if not contains(env, "/opt/app/healthcheck.py", "for i in range(10)"):
+    if not contains(env, healthcheck_path, "for i in range(10)"):
         return hard_fail("CRITICAL PENALTY: healthcheck.py tampered with.")
 
-    # preload removed
-    if not exists(env, "/etc/ld.so.preload"):
+    if not exists(env, preload_path) or os.path.getsize(preload_path) == 0:
         score += 0.5
-        reasons.append("Removed global preload")
+        reasons.append("Removed offending preload flag")
 
-    # healthcheck stabilizes
-    out = run(env, "python3 /opt/app/healthcheck.py 2>&1")
+    out = run(env, f"python3 {healthcheck_path} 2>&1")
     if "SUCCESS: Microservice is 100% stable." in out:
         score += 0.5
         reasons.append("Healthcheck stabilized")

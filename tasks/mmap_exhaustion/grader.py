@@ -1,4 +1,4 @@
-from env.grader_utils import run, exists, contains, hard_fail, clamp
+from env.grader_utils import run, exists, hard_fail, clamp
 
 def grade(env, last_command):
     score = 0.0
@@ -18,7 +18,7 @@ def grade(env, last_command):
 
     # service runs successfully for quant_user
     out = run(env, "su - quant_user -c '/opt/quant/tick_parser' 2>&1")
-    if out == "" or "success" in out.lower() or "ok" in out.lower():
+    if out == "" or "SUCCESS" in out.upper() or "10,000 tick batches parsed successfully" in out:
         score += 0.5
         reasons.append("Parser runs successfully")
 

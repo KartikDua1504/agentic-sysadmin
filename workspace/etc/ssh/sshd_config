@@ -1,0 +1,8 @@
+Port 22
+Protocol 2
+PermitRootLogin no
+PasswordAuthentication yes
+PubkeyAuthentication yes
+UsePAM yes
+X11Forwarding no
+PrintMotd no

@@ -4,7 +4,7 @@ def grade(env, last_command):
     score = 0.0
     reasons = []
 
-    # Anti-tamper: The foles should not be deleted or modified
+    # Anti-tamper: The files should not be deleted or modified
     if not exists(env, "/opt/math_daemon/daemon.py"):
         return hard_fail("CRITICAL PENALTY: daemon.py is completely empty or missing!")
     if not contains(env, "/opt/math_daemon/daemon.py", "socket.AF_UNIX"):

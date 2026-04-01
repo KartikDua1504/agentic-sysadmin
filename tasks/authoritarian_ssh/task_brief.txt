@@ -4,10 +4,8 @@ Our deployment pipeline has been demoted from “trusted automation” to “uni
 The key hasn’t changed. The pipeline hasn’t changed. But the server has decided that access is now a privilege, not a right.
 
 Required Steps:
-
-Identify why the deploy user’s key is no longer considered worthy.
-Restore access using the existing key (no cheating with new ones).
-Do not modify /etc/ssh/sshd_config — this is not a dictatorship reform exercise.
-Do not weaken SSH security to “just make it work.”
-When the pipeline can SSH successfully again, execute:
-"submit"
+1. Identify why the deploy user’s key is no longer considered worthy. (Hint: Check the logs in /var/log).
+2. Restore access using the existing key (no cheating with new ones).
+3. Do not modify /etc/ssh/sshd_config — this is not a dictatorship reform exercise.
+4. Do not weaken SSH security to “just make it work.”
+5. When the permissions are strictly compliant with standard SSH security practices, execute: submit

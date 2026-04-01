@@ -1,32 +1,38 @@
 TASK_REGISTRY = {
     "ls_cat_trivia": {
-        "image": "sysadmin-task-ls_cat_trivia:latest",
-        "grader_module": "tasks.ls_cat_trivia.grader",
-        "dockerfile_path": "tasks/ls_cat_trivia/Dockerfile"
+        "task_dir": "tasks/ls_cat_trivia",
+        "workspace_dir": "workspace",
+        "setup_path": "tasks/ls_cat_trivia/setup.py",
+        "grader_path": "tasks/ls_cat_trivia/grader.py",
     },
     "2k_vs_200k": {
-        "image": "sysadmin-task-2k_vs_200k:latest",
-        "grader_module": "tasks.2k_vs_200k.grader",
-        "dockerfile_path": "tasks/2k_vs_200k/Dockerfile"
+        "task_dir": "tasks/2k_vs_200k",
+        "workspace_dir": "workspace",
+        "setup_path": "tasks/2k_vs_200k/setup.py",
+        "grader_path": "tasks/2k_vs_200k/grader.py",
     },
     "authoritarian_ssh": {
-        "image": "sysadmin-task-authoritarian_ssh:latest",
-        "grader_module": "tasks.authoritarian_ssh.grader",
-        "dockerfile_path": "tasks/authoritarian_ssh/Dockerfile"
+        "task_dir": "tasks/authoritarian_ssh",
+        "workspace_dir": "workspace",
+        "setup_path": "tasks/authoritarian_ssh/setup.py",
+        "grader_path": "tasks/authoritarian_ssh/grader.py",
     },
     "mmap_exhaustion": {
-        "image": "sysadmin-task-mmap_exhaustion:latest",
-        "grader_module": "tasks.mmap_exhaustion.grader",
-        "dockerfile_path": "tasks/mmap_exhaustion/Dockerfile"
+        "task_dir": "tasks/mmap_exhaustion",
+        "workspace_dir": "workspace",
+        "setup_path": "tasks/mmap_exhaustion/setup.py",
+        "grader_path": "tasks/mmap_exhaustion/grader.py",
     },
     "pls_adopt_me": {
-        "image": "sysadmin-task-pls_adopt_me:latest",
-        "grader_module": "tasks.pls_adopt_me.grader",
-        "dockerfile_path": "tasks/pls_adopt_me/Dockerfile"
+        "task_dir": "tasks/pls_adopt_me",
+        "workspace_dir": "workspace",
+        "setup_path": "tasks/pls_adopt_me/setup.py",
+        "grader_path": "tasks/pls_adopt_me/grader.py",
     },
     "math_is_not_mathing": {
-        "image": "sysadmin-task-math_is_not_mathing:latest",
-        "grader_module": "tasks.math_is_not_mathing.grader",
-        "dockerfile_path": "tasks/math_is_not_mathing/Dockerfile"
-    }
+        "task_dir": "tasks/math_is_not_mathing",
+        "workspace_dir": "workspace",
+        "setup_path": "tasks/math_is_not_mathing/setup.py",
+        "grader_path": "tasks/math_is_not_mathing/grader.py",
+    },
 }
