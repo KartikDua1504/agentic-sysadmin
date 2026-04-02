@@ -1,4 +1,31 @@
-#!/usr/bin/env python3
+"""
+Setup script for the "pls_adopt_me" task.
+
+This script simulates a stale file lock caused by an orphaned background process.
+
+Scenario:
+- A database file (/opt/app/production.db) is locked by a rogue process
+- The locking process detaches (forks) and continues running in the background
+- A startup script enforces a single-instance lock using `flock`
+
+Failure:
+- The application cannot start because the file is already locked
+- A PID file exists but does not correspond to a properly managed process
+
+Key mechanics:
+- fcntl.flock creates an exclusive lock on the database file
+- The rogue process forks and detaches → becomes orphaned
+- The parent exits, leaving the child holding the lock indefinitely
+
+Expected fix:
+- Identify and terminate the process holding the file lock (e.g., via lsof/fuser)
+- Restart the application successfully
+
+Important:
+- Simulates real-world stale lock / orphaned process issues
+- Requires understanding of file locks and process lifecycle
+"""
+
 import os
 import subprocess
 from pathlib import Path
@@ -14,7 +41,7 @@ def setup():
     os.makedirs("/opt/app", exist_ok=True)
     Path("/opt/app/production.db").touch()
 
-    # 1. Background worker simulating a long-lived process holding a file lock.
+    # Rogue worker: acquires lock, forks, and leaves orphan holding it indefinitely
     rogue_worker_py = """\
 import os, time, fcntl
 db = open("/opt/app/production.db", "w")

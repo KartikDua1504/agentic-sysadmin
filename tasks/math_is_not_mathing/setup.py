@@ -1,4 +1,37 @@
-#!/usr/bin/env python3
+"""
+Setup script for the "math_is_not_mathing" task.
+
+This script provisions a multi-layered service failure involving:
+- Incorrect script paths
+- Filesystem permission issues
+- Misconfigured tmpfiles (systemd-style directory creation)
+
+Scenario:
+- A daemon is launched via a wrapper script under a non-root user
+- The service depends on environment variables for runtime paths
+- Multiple failures occur sequentially, requiring step-by-step debugging
+
+Failure chain:
+1. Wrapper script uses a relative path → daemon not found
+2. Data directory (/var/lib/math_daemon) has incorrect ownership → write fails
+3. Socket directory (/run/math_daemon) is created with root ownership → bind fails
+
+Actual bugs:
+- start-math.sh uses relative path instead of absolute
+- /var/lib/math_daemon owned by root (should be mathuser)
+- tmpfiles config creates /run/math_daemon as root:root
+
+Expected fixes:
+- Use absolute path to daemon.py
+- Fix ownership of /var/lib/math_daemon
+- Update tmpfiles config to use mathuser ownership
+
+Important:
+- Simulates real-world systemd + filesystem debugging
+- Requires understanding of environment variables, permissions, and service boot flow
+- Mutates real system paths (/opt, /var, /run, /etc)
+"""
+
 import os
 import subprocess
 from pathlib import Path
@@ -17,7 +50,8 @@ def setup():
     
     var_lib = "/var/lib/math_daemon"
     os.makedirs(var_lib, exist_ok=True)
-    subprocess.run(["chown", "root:root", var_lib], check=True) # Intentional bad permission
+    # Root cause (stage 2): incorrect ownership prevents writes by mathuser
+    subprocess.run(["chown", "root:root", var_lib], check=True)
 
     # 2. Copy the Python daemon logic
     daemon_py_content = """\

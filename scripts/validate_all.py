@@ -1,21 +1,59 @@
+"""
+Validation harness for Agentic Sysadmin tasks.
+
+This script replays known-good solution trajectories (command sequences)
+against each task environment to verify correctness of:
+
+- Environment setup (reset scripts)
+- Task configuration (filesystem, services, constraints)
+- Grader logic (reward + termination conditions)
+
+Each task must:
+- Reach `done = True`
+- Achieve `score = 1.0`
+
+If any task fails, the script exits immediately.
+
+Usage:
+    python validate.py [task_name]
+
+Purpose:
+- Sanity-check tasks before running LLM agents
+- Prevent debugging agent failures caused by broken environments
+"""
 import sys
 import os
 import argparse
 
+# Ensure project root is in path for module resolution
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from env.core import LinuxAdminEnv
 from env.models import SysAdminAction
 
 def run_validation(target_task=None):
+    """
+    Execute predefined solution trajectories against tasks to validate correctness.
+
+    Each task maps to a sequence of shell commands representing a known-good solution.
+    The environment executes these commands step-by-step and verifies:
+    - Final reward == 1.0
+    - Task marked as done by grader
+
+    Args:
+        target_task (str, optional): If provided, only this task is validated.
+    """
     solutions = {
         "mmap_exhaustion": [
-    "su - quant_user -c '/opt/quant/tick_parser'",
-    "strace -e mmap su - quant_user -c '/opt/quant/tick_parser' 2>&1 | tail -n 20",
-    "sed -i '/^quant_user/d' /etc/security/limits.conf",
-    "cat /etc/security/limits.conf | grep quant_user",   # debug check
-    "su - quant_user -c '/opt/quant/tick_parser'"
-],
+            # Diagnose mmap failure under constrained limits
+            "su - quant_user -c '/opt/quant/tick_parser'",
+            "strace -e mmap su - quant_user -c '/opt/quant/tick_parser' 2>&1 | tail -n 20",
+            # Fix limits configuration
+            "sed -i '/^quant_user/d' /etc/security/limits.conf",
+            "cat /etc/security/limits.conf | grep quant_user",
+            # Verify fix
+            "su - quant_user -c '/opt/quant/tick_parser'"
+        ],
         "ls_cat_trivia": [
             # 1. Agent gets tricked by the fake DNS error
             "curl https://google.com",
@@ -82,9 +120,10 @@ def run_validation(target_task=None):
         ]
     }
 
+    # Subset of tasks if required
     if target_task:
         if target_task not in solutions:
-            print(f"❌ Error: Task '{target_task}' not found in the solutions dictionary.")
+            print(f"Error: Task '{target_task}' not found in the solutions dictionary.")
             sys.exit(1)
         tasks_to_run = {target_task: solutions[target_task]}
     else:
@@ -124,6 +163,7 @@ def run_validation(target_task=None):
     print("\n-> ALL TIERS VALIDATED SUCCESSFULLY! YOU ARE READY TO RUN THE AI.")
 
 if __name__ == "__main__":
+    # CLI entry point for running validation
     parser = argparse.ArgumentParser(description="Validate agentic-sysadmin tasks.")
     parser.add_argument("task_name", nargs="?", help="Optional: Specify a single task to run (e.g., mmap_exhaustion)")
     args = parser.parse_args()

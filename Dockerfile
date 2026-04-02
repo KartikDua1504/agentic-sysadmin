@@ -1,12 +1,15 @@
+# Base image: stable Ubuntu LTS for reproducible sysadmin environment
 FROM ubuntu:22.04
 
+# Disable interactive prompts + ensure clean Python output
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Core system + debugging + networking + misdirection tools
+# Install system dependencies
+# Grouped by purpose for clarity and maintainability
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Standard Python & Build
+    # Python runtime + build tooling
     python3 \
     python3-pip \
     python3-venv \
@@ -15,11 +18,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
     make \
-    # Low-level debugging
+    \
+    # Low-level debugging / tracing (used by tasks)
     gdb \
     strace \
     ltrace \
-    # Sysadmin core
+    \
+    # Core sysadmin utilities (baseline environment)
     lsof \
     procps \
     util-linux \
@@ -34,7 +39,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpam-modules \
     psmisc \
     systemd \
-    # Networking
+    \
+    # Networking tools (diagnostics + failure scenarios)
     iproute2 \
     net-tools \
     dnsutils \
@@ -42,7 +48,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-client \
     ca-certificates \
     tzdata \
-    # Misdirection & Red Herrings
+    \
+    # Intentional noise / red herrings for agent robustness testing
     cowsay \
     fortune \
     sl \
@@ -54,16 +61,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tree \
     tmux \
     neofetch \
+    \
+    # Cleanup to reduce image size
     && rm -rf /var/lib/apt/lists/*
 
+# Application working directory
 WORKDIR /app
 
+# Install Python dependencies separately to leverage Docker layer caching
 COPY requirements.txt .
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
+# Copy full project (tasks, env, server, etc.)
 COPY . .
 
+# Expose port used by FastAPI + Gradio app
 EXPOSE 7860
 
-# Run the app.py server to keep the HF Space alive and respond to OpenEnv pings
+# Start ASGI server (serves both API + UI)
 CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]

@@ -1,5 +1,19 @@
 """
-Inference Script (OpenEnv Hackathon Compliant)
+LLM-driven inference loop for Agentic Sysadmin tasks.
+
+Flow:
+1. Initialize environment (LinuxAdminEnv)
+2. Build prompt from current system state
+3. Query LLM for next shell command
+4. Execute command in environment
+5. Repeat until task completion or step limit
+
+Key constraints:
+- Model outputs exactly one bash command per step
+- Environment provides reward + termination signal
+- Loop enforces step budget and basic rate limiting
+
+Designed for OpenEnv-style evaluation (deterministic, step-based).
 """
 
 import os
@@ -13,9 +27,7 @@ from openai import OpenAI, RateLimitError
 from env.core import LinuxAdminEnv
 from env.models import SysAdminAction
 
-# ==========================================
-# MANDATORY OPENENV VARIABLES
-# ==========================================
+# OPENENV VARIABLES
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4o-mini")
@@ -35,16 +47,26 @@ You are an elite Linux System Administrator fixing a misconfigured service.
 - Each step must advance your understanding of the issue.
 
 CRITICAL RULES:
-1. The system itself is healthy. Do NOT attempt kernel tuning, system limits, or environment exports.
-2. Focus on inspecting files and configurations inside /etc, /opt, and /usr/local.
-3. Identify a specific root cause. Do NOT apply broad fixes like chmod/chown or environment resets.
-4. Reply with EXACTLY ONE bash command.
-5. When fixed, output exactly: submit
+1. The system itself is healthy. Do NOT attempt kernel tuning.
+2. Identify a specific root cause. Do NOT apply broad fixes like chmod/chown or environment resets.
+3. Reply with EXACTLY ONE bash command.
+4. When fixed, output exactly: submit
 """).strip()
 
 
 def call_model(client: OpenAI, messages: List[dict]) -> str:
-    """Calls the LLM using the official OpenAI client with Exponential Backoff."""
+    """
+    Invoke LLM with exponential backoff for rate limits.
+
+    Behavior:
+    - Retries on HTTP 429 (RateLimitError) with exponential delay
+    - Fails fast on other exceptions
+    - Returns raw model output (fallback: "pwd" if empty)
+
+    Guarantees:
+    - Always returns a string command
+    - Never silently suppresses non-rate-limit errors
+    """
     max_retries = 5
     for attempt in range(max_retries):
         try:
@@ -67,6 +89,18 @@ def call_model(client: OpenAI, messages: List[dict]) -> str:
 
 
 def build_user_prompt(step, observation, brief, history):
+    """
+    Construct user prompt for the LLM.
+
+    Includes:
+    - Task objective (brief)
+    - Recent command history (last 5 steps)
+    - Current system state (cwd, stdout, stderr, exit code)
+
+    Purpose:
+    - Ground the model in environment state
+    - Prevent repeated actions via history exposure
+    """
     recent_history = "\n".join(history[-5:]) if history else "No commands executed yet."
 
     return textwrap.dedent(f"""
@@ -88,6 +122,12 @@ def build_user_prompt(step, observation, brief, history):
 
 
 def get_task_brief(task_name):
+    """
+    Load task description from disk.
+
+    Fallback:
+        Returns generic instruction if brief file is missing.
+    """
     path = os.path.join("tasks", task_name, "task_brief.txt")
     if os.path.exists(path):
         return open(path).read().strip()
@@ -95,6 +135,16 @@ def get_task_brief(task_name):
 
 
 def parse_model_action(text):
+    """
+    Extract a single shell command from model output.
+
+    Handles:
+    - Markdown code blocks (```bash ... ```)
+    - Multi-line responses (takes first non-empty line)
+
+    Ensures:
+    - Output is always a single command string
+    """
     text = text.strip()
     text = re.sub(r"^```.*?\n", "", text, flags=re.DOTALL)
     text = re.sub(r"```$", "", text)
@@ -103,14 +153,27 @@ def parse_model_action(text):
 
 
 def main():
+    """
+    Entry point for running a single task with LLM agent.
+
+    Loop:
+    - Build prompt from environment state
+    - Query model for next command
+    - Execute in environment
+    - Track history + reward
+    - Stop on completion or step limit
+
+    Outputs:
+    - Step-by-step command trace
+    - Final score and reasoning
+    """
     if not API_KEY:
-        print("❌ Missing HF_TOKEN or API_KEY")
+        print("Missing HF_TOKEN or API_KEY")
         return
 
-    print(f"\n🚀 Running task: {TARGET_TASK} against {API_BASE_URL} using {MODEL_NAME}")
+    print(f"\nRunning task: {TARGET_TASK} against {API_BASE_URL} using {MODEL_NAME}")
     print("=" * 60)
 
-    # Initialize the mandatory OpenAI client
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
     env = LinuxAdminEnv(task_name=TARGET_TASK)
@@ -139,12 +202,12 @@ def main():
         time.sleep(2.0)
 
         if done:
-            print("\n✅ DONE")
+            print("\nDONE")
             print(f"Score: {reward.score}")
             print(f"Reason: {reward.reasoning}")
             return
 
-    print("\n⚠️ Max steps reached")
+    print("\nMax steps reached")
     print(f"Final Score: {reward.score}")
 
 

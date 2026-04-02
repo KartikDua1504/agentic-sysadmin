@@ -7,12 +7,13 @@ def grade(env, last_command):
 
     healthcheck_path = "/opt/app/healthcheck.py"
     preload_path = "/etc/ld.so.preload"
-
+    # Anti-tamper : These files should not be deleted or modified.
     if not exists(env, healthcheck_path):
         return hard_fail("CRITICAL PENALTY: healthcheck.py missing or deleted.")
     if not contains(env, healthcheck_path, "for i in range(10)"):
         return hard_fail("CRITICAL PENALTY: healthcheck.py tampered with.")
-
+    
+    # Functional Validation: Preload must behave correctly
     if not exists(env, preload_path) or os.path.getsize(preload_path) == 0:
         score += 0.5
         reasons.append("Removed offending preload flag")

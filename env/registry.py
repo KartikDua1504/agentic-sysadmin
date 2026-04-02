@@ -1,3 +1,8 @@
+"""
+Registry mapping task names → their configuration
+Used by the environment to dynamically load setup + grader logic
+"""
+
 TASK_REGISTRY = {
     "ls_cat_trivia": {
         "task_dir": "tasks/ls_cat_trivia",
