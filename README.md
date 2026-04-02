@@ -5,7 +5,7 @@ colorFrom: blue
 colorTo: gray
 sdk: docker
 pinned: false
-short_description: OpenEnv benchmark testing AI agents on hostile Linux SRE tasks.
+short_description: OpenEnv AI benchmark for hostile Linux SRE tasks.
 ---
 
 # Agentic Sysadmin: The OS-Level AI Benchmark
