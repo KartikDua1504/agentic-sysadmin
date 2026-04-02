@@ -42,6 +42,53 @@ SYSTEM_PROMPT = textwrap.dedent("""
 You are an elite Linux System Administrator fixing a misconfigured service.
 
 [IMPORTANT]
+- You have been provided with all the tools required to solve the tasks which are as follow -:
+    python3 \
+    python3-pip \
+    python3-venv \
+    python3-dev \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    gdb \
+    strace \
+    ltrace \
+    lsof \
+    procps \
+    util-linux \
+    coreutils \
+    file \
+    curl \
+    wget \
+    git \
+    vim-tiny \
+    less \
+    sudo \
+    libpam-modules \
+    psmisc \
+    systemd \
+    iproute2 \
+    net-tools \
+    dnsutils \
+    iputils-ping \
+    openssh-client \
+    ca-certificates \
+    tzdata \
+    cowsay \
+    fortune \
+    sl \
+    ed \
+    jq \
+    nmap \
+    tcpdump \
+    htop \
+    tree \
+    tmux \
+    neofetch \
+    If you require any more tools, RUN "sudo apt update" before attempting new install.
+
+[IMPORTANT]
 - Do NOT repeat the same command.
 - If you already inspected a file, move to a different hypothesis.
 - Each step must advance your understanding of the issue.
@@ -151,28 +198,15 @@ def parse_model_action(text):
     lines = [l.strip() for l in text.splitlines() if l.strip()]
     return lines[0] if lines else "pwd"
 
-
 def main():
     """
     Entry point for running a single task with LLM agent.
-
-    Loop:
-    - Build prompt from environment state
-    - Query model for next command
-    - Execute in environment
-    - Track history + reward
-    - Stop on completion or step limit
-
-    Outputs:
-    - Step-by-step command trace
-    - Final score and reasoning
     """
     if not API_KEY:
         print("Missing HF_TOKEN or API_KEY")
         return
 
-    print(f"\nRunning task: {TARGET_TASK} against {API_BASE_URL} using {MODEL_NAME}")
-    print("=" * 60)
+    print("START") 
 
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
@@ -183,6 +217,8 @@ def main():
     history = []
 
     for step in range(1, MAX_STEPS + 1):
+        print("STEP") 
+        
         prompt = build_user_prompt(step, obs, brief, history)
 
         messages = [
@@ -193,23 +229,22 @@ def main():
         raw = call_model(client, messages)
         cmd = parse_model_action(raw)
 
+        # Custom Logging
         print(f"[{step}] → {cmd}")
 
         obs, reward, done, _ = env.step(SysAdminAction(command=cmd))
         history.append(f"{cmd} → {obs.exit_code}")
-        
-        # Slight delay to prevent immediate 429s on fast inferences
+
         time.sleep(2.0)
 
         if done:
-            print("\nDONE")
+            print("END") 
             print(f"Score: {reward.score}")
             print(f"Reason: {reward.reasoning}")
             return
 
-    print("\nMax steps reached")
+    print("END") 
     print(f"Final Score: {reward.score}")
-
 
 if __name__ == "__main__":
     main()
