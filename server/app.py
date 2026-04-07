@@ -15,8 +15,7 @@ class StepRequest(BaseModel):
 @app.post("/reset")
 def reset_env(task_name: str = "pls_adopt_me"):
     global env
-    if env is None or getattr(env, "task_name", None) != task_name:
-        env = LinuxAdminEnv(task_name=task_name)
+    env = LinuxAdminEnv(task_name=task_name)
     obs = env.reset()
     return {
         "cwd": obs.cwd,
@@ -24,6 +23,16 @@ def reset_env(task_name: str = "pls_adopt_me"):
         "stderr": obs.stderr,
         "exit_code": obs.exit_code,
     }
+
+
+@app.head("/reset")
+def reset_head():
+    return {"status": "ok"}
+
+
+@app.get("/reset")
+def reset_get():
+    return {"status": "ok"}
 
 @app.post("/step")
 def step_env(req: StepRequest):
