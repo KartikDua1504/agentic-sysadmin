@@ -31,7 +31,7 @@ def perm_owner(env, path: str) -> tuple[str, str, str]:
 
 def hard_fail(msg: str):
     # Immediate termination with minimal non-zero score
-    return 0.1, True, msg
+    return 0.01, True, msg
 
 def clamp(score: float) -> float:
     score = round(float(score), 2)
