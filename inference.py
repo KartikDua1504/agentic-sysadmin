@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 LLM-driven inference loop for Agentic Sysadmin tasks.
 
@@ -226,7 +227,16 @@ def main():
             {"role": "user", "content": prompt},
         ]
 
-        raw = call_model(client, messages)
+        # WRAPPED IN TRY/EXCEPT FOR PHASE 2 COMPLIANCE
+        try:
+            raw = call_model(client, messages)
+        except Exception as e:
+            print(f"[{step}] → Error calling model: {e}")
+            print("END")
+            print("Score: 0.0")
+            print("Reason: Model API failure.")
+            return
+
         cmd = parse_model_action(raw)
 
         # Custom Logging
