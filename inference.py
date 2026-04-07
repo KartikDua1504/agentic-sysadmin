@@ -207,7 +207,7 @@ def main():
         print("Missing HF_TOKEN or API_KEY")
         return
 
-    print("START") 
+    print(f"[START] task={TARGET_TASK}", flush=True)
 
     client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
 
@@ -216,9 +216,9 @@ def main():
 
     obs = env.reset()
     history = []
+    current_score = 0.0
 
     for step in range(1, MAX_STEPS + 1):
-        print("STEP") 
         
         prompt = build_user_prompt(step, obs, brief, history)
 
@@ -227,34 +227,33 @@ def main():
             {"role": "user", "content": prompt},
         ]
 
-        # WRAPPED IN TRY/EXCEPT FOR PHASE 2 COMPLIANCE
         try:
             raw = call_model(client, messages)
         except Exception as e:
             print(f"[{step}] → Error calling model: {e}")
-            print("END")
-            print("Score: 0.0")
-            print("Reason: Model API failure.")
+            print(f"[END] task={TARGET_TASK} score={current_score} steps={step}", flush=True)
             return
 
         cmd = parse_model_action(raw)
 
-        # Custom Logging
+        # Custom Logging 
         print(f"[{step}] → {cmd}")
 
         obs, reward, done, _ = env.step(SysAdminAction(command=cmd))
         history.append(f"{cmd} → {obs.exit_code}")
+        
+        current_score = reward.score
+
+        # Exact Format
+        print(f"[STEP] step={step} reward={current_score}", flush=True)
 
         time.sleep(2.0)
 
         if done:
-            print("END") 
-            print(f"Score: {reward.score}")
-            print(f"Reason: {reward.reasoning}")
+            print(f"[END] task={TARGET_TASK} score={current_score} steps={step}", flush=True)
             return
 
-    print("END") 
-    print(f"Final Score: {reward.score}")
+    print(f"[END] task={TARGET_TASK} score={current_score} steps={MAX_STEPS}", flush=True)
 
 if __name__ == "__main__":
     main()
