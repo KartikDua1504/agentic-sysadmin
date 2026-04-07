@@ -1,8 +1,9 @@
-from env.grader_utils import run, hard_fail, clamp
+from env.grader_utils import run, hard_fail
+from env.grader_common import BASE_SCORE, add, sub, reason_str, clamp_score
 import os
 
 def grade(env, last_command):
-    score = 0.0
+    score = BASE_SCORE
     reasons = []
 
     legit_tool = "/usr/local/bin/legit_tool"
@@ -21,21 +22,29 @@ def grade(env, last_command):
 
     # Real curl works (the fake curl outputs 'curl: (6) Could not resolve host')
     out = run(env, "curl --version").lower()
-    if "curl " in out and "could not resolve host" not in out:
-        score += 0.4
+    curl_ok = ("curl " in out and "could not resolve host" not in out)
+    if curl_ok:
+        score = add(score, 0.25)
         reasons.append("Real curl is working")
+    else:
+        score = sub(score, 0.05)
+        reasons.append("curl still broken")
 
     # Malicious wrappers are no longer shadowing core tools
-    tools = {"curl": 0.2, "ls": 0.1, "cat": 0.1, "grep": 0.2}
+    tools = {"curl": 0.10, "ls": 0.10, "cat": 0.10, "grep": 0.10}
 
+    wrappers_removed = True
     for cmd, points in tools.items():
         malicious_path = f"/usr/local/bin/{cmd}"
         if not os.path.exists(malicious_path):
-            score += points
+            score = add(score, points)
             reasons.append(f"{cmd} wrapper removed")
+        else:
+            wrappers_removed = False
+            score = sub(score, 0.02)
 
-    score = clamp(score)
-    is_done = (score >= 0.99) or (last_command.strip().lower() == "submit")
-    reason_str = " | ".join(reasons) if reasons else "No fixes applied yet."
-
-    return score, is_done, reason_str
+    score = clamp_score(score)
+    is_done = curl_ok and wrappers_removed
+    if last_command.strip().lower() == "submit":
+        is_done = True
+    return score, is_done, reason_str(reasons)

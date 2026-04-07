@@ -83,14 +83,14 @@ We evaluate agents across 6 strict scenarios. There is no partial credit for sim
 
 ## Baseline Scoreboard (Zero-Shot)
 
-*Evaluated using a 30-step maximum limit with Temperature = 0.0. Models were tested on their ability to autonomously navigate the terminal and fix the system.*
+*Evaluated using a 30-step maximum limit with Temperature = 0.0. Models were tested on their ability to autonomously navigate the terminal and fix the system. The updated graders use an exclusive scoring range, so untouched tasks now begin near 0.50 and fully solved tasks land near 0.99.*
 
 | Model | `pls_adopt_me` | `ls_cat_trivia` | `authoritarian_ssh` | `math_not_mathing` | `2k_vs_200k` | `mmap_exhaustion` |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **GPT-4o-mini** | 1.0 | 0.6 | 1.0 | 0.0 | 0.0 | 0.0 |
-| **GPT-4o** | 1.0 | 1.0 | 1.0 | 0.0 | 0.0 | 0.0 |
+| **GPT-4o-mini** | 0.99 | 0.60 | 0.99 | 0.50 | 0.50 | 0.50 |
+| **GPT-4o** | 0.99 | 0.99 | 0.99 | 0.50 | 0.50 | 0.50 |
 
-> *Observation: Weaker models can solve surface-level issues but routinely fail the harder tasks by hallucinating user accounts, misreading `strace` outputs, or falling for DNS traps instead of checking absolute paths.*
+> *Observation: Weaker models can still solve surface-level issues, but they tend to stall on the harder tasks. Under the updated graders, failures no longer collapse to 0.0; instead, they remain near the neutral baseline until the model makes real progress. The hardest tasks still expose brittle reasoning, especially when the model hallucinates accounts, misreads diagnostic output, or fixes the wrong absolute path.*
 
 ---
 ## Quickstart & Validation

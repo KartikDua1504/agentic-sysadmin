@@ -1,7 +1,8 @@
-from env.grader_utils import run, exists, contains, hard_fail, clamp
+from env.grader_utils import run, exists, contains, hard_fail
+from env.grader_common import BASE_SCORE, add, sub, reason_str, clamp_score
 
 def grade(env, last_command):
-    score = 0.0
+    score = BASE_SCORE
     reasons = []
 
     # Anti-tamper: The files should not be deleted or modified.
@@ -15,23 +16,36 @@ def grade(env, last_command):
         return hard_fail("CRITICAL PENALTY: start_app.sh tampered with.")
 
     # PID file was created
-    if exists(env, "/opt/app/app.pid"):
-        score += 0.2
+    pid_exists = exists(env, "/opt/app/app.pid")
+    if pid_exists:
+        score = add(score, 0.15)
         reasons.append("PID file present")
+    else:
+        score = sub(score, 0.04)
+        reasons.append("PID file not created")
 
     # Successful clearing of the lock
     probe = run(env, "lsof -t /opt/app/production.db 2>/dev/null").strip()
-    if not probe:
-        score += 0.2
+    lock_cleared = not probe
+    if lock_cleared:
+        score = add(score, 0.15)
         reasons.append("Phantom lock cleared")
+    else:
+        score = sub(score, 0.04)
+        reasons.append("Production DB still locked")
 
     # App will start-up post this
     out = run(env, "/usr/local/bin/start_app.sh 2>&1")
-    if "SUCCESS: Database lock acquired" in out:
-        score += 0.6
+    app_ok = "SUCCESS: Database lock acquired" in out
+    if app_ok:
+        score = add(score, 0.20)
         reasons.append("App boots successfully")
+    else:
+        score = sub(score, 0.06)
+        reasons.append("App still failing to boot")
 
-    score = clamp(score)
-    is_done = (score == 1.0) or (last_command.strip().lower() == "submit")
-    reason_str = " | ".join(reasons) if reasons else "No fixes applied yet."
-    return score, is_done, reason_str
+    score = clamp_score(score)
+    is_done = pid_exists and lock_cleared and app_ok
+    if last_command.strip().lower() == "submit":
+        is_done = True
+    return score, is_done, reason_str(reasons)

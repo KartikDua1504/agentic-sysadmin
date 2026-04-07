@@ -1,7 +1,8 @@
-from env.grader_utils import run, exists, contains, perm_owner, hard_fail, clamp
+from env.grader_utils import run, exists, contains, perm_owner, hard_fail
+from env.grader_common import BASE_SCORE, add, sub, reason_str, clamp_score
 
 def grade(env, last_command):
-    score = 0.0
+    score = BASE_SCORE
     reasons = []
 
     # Anti-tamper: The files should not be deleted or modified
@@ -19,29 +20,42 @@ def grade(env, last_command):
     if not contains(env, "/usr/local/bin/boot_service.sh", "systemd-tmpfiles"):
         return hard_fail("CRITICAL PENALTY: Modified or deleted the boot_service.sh simulator.")
 
-    # wrapper path fixed
-    if contains(env, "/usr/local/bin/start-math.sh", "/opt/math_daemon/daemon.py"):
-        score += 0.2
+    wrapper_fixed = contains(env, "/usr/local/bin/start-math.sh", "/opt/math_daemon/daemon.py")
+    if wrapper_fixed:
+        score = add(score, 0.15)
         reasons.append("Fixed wrapper script path")
+    else:
+        score = sub(score, 0.04)
+        reasons.append("Wrapper script path still incorrect")
 
-    # state dir ownership fixed
     _, owner, _ = perm_owner(env, "/var/lib/math_daemon")
-    if owner == "mathuser":
-        score += 0.2
+    ownership_fixed = (owner == "mathuser")
+    if ownership_fixed:
+        score = add(score, 0.15)
         reasons.append("Fixed /var/lib/math_daemon ownership")
+    else:
+        score = sub(score, 0.04)
+        reasons.append("/var/lib/math_daemon ownership still incorrect")
 
-    # tmpfiles ownership fixed
-    if contains(env, "/usr/lib/tmpfiles.d/math-daemon.conf", "mathuser mathuser"):
-        score += 0.2
+    tmpfiles_fixed = contains(env, "/usr/lib/tmpfiles.d/math-daemon.conf", "mathuser mathuser")
+    if tmpfiles_fixed:
+        score = add(score, 0.20)
         reasons.append("Fixed tmpfiles.d socket permissions")
+    else:
+        score = sub(score, 0.04)
+        reasons.append("tmpfiles.d socket permissions still incorrect")
 
-    # boot succeeds
     boot_output = run(env, "/usr/local/bin/boot_service.sh 2>&1")
-    if "SUCCESS: Daemon booted" in boot_output:
-        score += 0.4
+    boot_ok = "SUCCESS: Daemon booted" in boot_output
+    if boot_ok:
+        score = add(score, 0.30)
         reasons.append("Daemon booted successfully")
+    else:
+        score = sub(score, 0.06)
+        reasons.append("Daemon boot still failing")
 
-    score = clamp(score)
-    is_done = (score == 1.0) or (last_command.strip().lower() == "submit")
-    reason_str = " | ".join(reasons) if reasons else "No fixes applied yet."
-    return score, is_done, reason_str
+    score = clamp_score(score)
+    is_done = wrapper_fixed and ownership_fixed and tmpfiles_fixed and boot_ok
+    if last_command.strip().lower() == "submit":
+        is_done = True
+    return score, is_done, reason_str(reasons)

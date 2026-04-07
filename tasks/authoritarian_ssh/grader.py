@@ -1,7 +1,8 @@
-from env.grader_utils import run, exists, perm_owner, hard_fail, clamp
+from env.grader_utils import run, exists, perm_owner, hard_fail
+from env.grader_common import BASE_SCORE, add, sub, reason_str, clamp_score
 
 def grade(env, last_command):
-    score = 0.0
+    score = BASE_SCORE
     reasons = []
 
     ssh_dir = "/home/deploy/.ssh"
@@ -19,18 +20,26 @@ def grade(env, last_command):
 
     # Step 1: .ssh perms fixed (Should be 700)
     mode, owner, group = perm_owner(env, ssh_dir)
-    # perm_owner returns string like '700' or '777'
-    if mode == "700":
-        score += 0.5
+    ssh_fixed = (mode == "700")
+    if ssh_fixed:
+        score = add(score, 0.25)
         reasons.append("Fixed ~/.ssh permissions")
+    else:
+        score = sub(score, 0.05)
+        reasons.append("~/.ssh permissions still incorrect")
 
     # Step 2: authorized_keys perms fixed (Should be 600)
     mode, owner, group = perm_owner(env, auth_keys)
-    if mode == "600":
-        score += 0.5
+    keys_fixed = (mode == "600")
+    if keys_fixed:
+        score = add(score, 0.25)
         reasons.append("Fixed authorized_keys permissions")
+    else:
+        score = sub(score, 0.05)
+        reasons.append("authorized_keys permissions still incorrect")
 
-    score = clamp(score)
-    is_done = (score == 1.0) or (last_command.strip().lower() == "submit")
-    reason_str = " | ".join(reasons) if reasons else "No fixes applied yet."
-    return score, is_done, reason_str
+    score = clamp_score(score)
+    is_done = ssh_fixed and keys_fixed
+    if last_command.strip().lower() == "submit":
+        is_done = True
+    return score, is_done, reason_str(reasons)
