@@ -1,3 +1,4 @@
+import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -5,7 +6,6 @@ from env.core import LinuxAdminEnv
 from env.models import SysAdminAction
 
 app = FastAPI()
-
 env = None
 
 
@@ -14,8 +14,12 @@ class StepRequest(BaseModel):
 
 
 @app.post("/reset")
-def reset_env(task_name: str = "pls_adopt_me"):
+def reset_env(task_name: str = None):
     global env
+
+    if task_name is None:
+        task_name = "pls_adopt_me"
+
     env = LinuxAdminEnv(task_name=task_name)
     obs = env.reset()
 
@@ -49,8 +53,10 @@ def step_env(req: StepRequest):
 def get_state():
     return {"status": "ok"}
 
+
 def main():
-    uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+
 
 if __name__ == "__main__":
     main()
