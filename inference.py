@@ -242,9 +242,12 @@ def main():
         obs, reward, done, _ = env.step(SysAdminAction(command=cmd))
         history.append(f"{cmd} → {obs.exit_code}")
         
-        current_score = reward.score
+        current_score = float(reward.score)
+        if current_score <= 0.0:
+            current_score = 0.01
+        elif current_score >= 1.0:
+            current_score = 0.99
 
-        # Exact Format
         print(f"[STEP] step={step} reward={current_score}", flush=True)
 
         time.sleep(2.0)
@@ -252,7 +255,12 @@ def main():
         if done:
             print(f"[END] task={TARGET_TASK} score={current_score} steps={step}", flush=True)
             return
-
+    
+    current_score = float(reward.score)
+    if current_score <= 0.0:
+        current_score = 0.01
+    elif current_score >= 1.0:
+        current_score = 0.99
     print(f"[END] task={TARGET_TASK} score={current_score} steps={MAX_STEPS}", flush=True)
 
 if __name__ == "__main__":

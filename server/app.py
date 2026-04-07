@@ -1,34 +1,21 @@
-# server/app.py
+import os
 import uvicorn
 from fastapi import FastAPI
 from pydantic import BaseModel
-
 from env.core import LinuxAdminEnv
 from env.models import SysAdminAction
 
 app = FastAPI()
-env = LinuxAdminEnv(task_name="pls_adopt_me")  # pre-create once
+
+# Global environment instance
+env = None
 
 class StepRequest(BaseModel):
     command: str
 
-@app.post("/reset")
-def reset_env(task_name: str = "pls_adopt_me"):
-    global env
-    env = LinuxAdminEnv(task_name=task_name)
-    obs = env.reset()
-    return {
-        "cwd": obs.cwd,
-        "stdout": obs.stdout,
-        "stderr": obs.stderr,
-        "exit_code": obs.exit_code,
-    }
-
-
 @app.head("/reset")
 def reset_head():
     return {"status": "ok"}
-
 
 @app.get("/reset")
 def reset_get():
@@ -38,15 +25,25 @@ def reset_get():
 def step_env(req: StepRequest):
     global env
     if env is None:
-        env = LinuxAdminEnv(task_name="pls_adopt_me")
+        # Dynamically pull the task name, no more hardcoded 'pls_adopt_me'
+        target_task = os.getenv("TASK_NAME", "2k_vs_200k")
+        env = LinuxAdminEnv(task_name=target_task)
 
     obs, reward, done, _ = env.step(SysAdminAction(command=req.command))
+    
+    # Strictly clamp bounds for the API response
+    safe_score = float(reward.score)
+    if safe_score <= 0.0:
+        safe_score = 0.01
+    elif safe_score >= 1.0:
+        safe_score = 0.99
+
     return {
         "cwd": obs.cwd,
         "stdout": obs.stdout,
         "stderr": obs.stderr,
         "exit_code": obs.exit_code,
-        "score": reward.score,
+        "score": safe_score,
         "done": done,
     }
 
