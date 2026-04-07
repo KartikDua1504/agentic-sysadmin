@@ -81,23 +81,23 @@ class LinuxAdminEnv:
         self.grader = getattr(module, "grade")
 
     def _run_command(self, command: str) -> Tuple[int, str]:
-    """
-    Execute a shell command in a login bash shell on the host container.
+        """
+        Execute a shell command in a login bash shell on the host container.
 
-    Details:
-    - Uses `bash -lc` to ensure:
-    - Login shell semantics (profile, rc files)
-    - Consistent environment resolution
-    - Executes at root directory (`cwd="/"`) to simulate system-level access
-    - Inherits current environment variables
+        Details:
+        - Uses `bash -lc` to ensure:
+        - Login shell semantics (profile, rc files)
+        - Consistent environment resolution
+        - Executes at root directory (`cwd="/"`) to simulate system-level access
+        - Inherits current environment variables
 
-    Returns:
-        (exit_code, combined stdout + stderr output)
+        Returns:
+            (exit_code, combined stdout + stderr output)
 
-    Security note:
-    - This executes arbitrary commands on the container OS.
-    - Intended for controlled evaluation environments only.
-    """
+        Security note:
+        - This executes arbitrary commands on the container OS.
+        - Intended for controlled evaluation environments only.
+        """
         proc = subprocess.run(
             ["bash", "-lc", command],
             cwd="/",  # Force execution at native root
