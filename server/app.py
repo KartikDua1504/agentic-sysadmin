@@ -1,19 +1,16 @@
 import os
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from env.core import LinuxAdminEnv
 from env.models import SysAdminAction
 
 app = FastAPI()
-
-# Global environment instance
 env = None
 
 class StepRequest(BaseModel):
     command: str
 
-# Browser ke liye fallback taaki 'Not Found' na aaye
 @app.get("/")
 def read_root():
     return {"message": "Agentic Sysadmin API is running and ready for evaluation."}
@@ -26,11 +23,19 @@ def reset_head():
 def reset_get():
     return {"status": "ok"}
 
-# YEH MISSING THA! Iski wajah se auto-grader 405 error de raha tha.
+# FIX: Now properly reads the requested task_name from the Auto-Grader's JSON
 @app.post("/reset")
-def reset_post():
+async def reset_post(request: Request):
     global env
     target_task = os.getenv("TASK_NAME", "2k_vs_200k")
+    
+    try:
+        body = await request.json()
+        if "task_name" in body:
+            target_task = body["task_name"]
+    except Exception:
+        pass # Fallback to env var if body is empty or invalid
+
     env = LinuxAdminEnv(task_name=target_task)
     env.reset()
     return {"status": "ok"}
@@ -44,7 +49,7 @@ def step_env(req: StepRequest):
 
     obs, reward, done, _ = env.step(SysAdminAction(command=req.command))
     
-    # Strictly clamp bounds for the API response
+    # Strictly clamp bounds to (0.01, 0.99)
     safe_score = float(reward.score)
     if safe_score <= 0.0:
         safe_score = 0.01
@@ -63,6 +68,18 @@ def step_env(req: StepRequest):
 @app.get("/state")
 def get_state():
     return {"status": "ok"}
+
+# FIX: Expose the list of tasks directly to the Auto-Grader
+@app.get("/tasks")
+def list_tasks():
+    return [
+        "2k_vs_200k",
+        "authoritarian_ssh",
+        "ls_cat_trivia",
+        "math_is_not_mathing",
+        "mmap_exhaustion",
+        "pls_adopt_me"
+    ]
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=7860)
