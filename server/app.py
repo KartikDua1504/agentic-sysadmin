@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import uvicorn
 
 from env.core import LinuxAdminEnv
 from env.models import SysAdminAction
@@ -52,3 +53,11 @@ def step_env(req: StepRequest):
 @app.get("/state")
 def get_state():
     return {"status": "ok"}
+
+
+def main():
+    uvicorn.run(app, host="0.0.0.0", port=7860)
+
+
+if __name__ == "__main__":
+    main()
