@@ -13,6 +13,11 @@ env = None
 class StepRequest(BaseModel):
     command: str
 
+# Browser ke liye fallback taaki 'Not Found' na aaye
+@app.get("/")
+def read_root():
+    return {"message": "Agentic Sysadmin API is running and ready for evaluation."}
+
 @app.head("/reset")
 def reset_head():
     return {"status": "ok"}
@@ -21,11 +26,19 @@ def reset_head():
 def reset_get():
     return {"status": "ok"}
 
+# YEH MISSING THA! Iski wajah se auto-grader 405 error de raha tha.
+@app.post("/reset")
+def reset_post():
+    global env
+    target_task = os.getenv("TASK_NAME", "2k_vs_200k")
+    env = LinuxAdminEnv(task_name=target_task)
+    env.reset()
+    return {"status": "ok"}
+
 @app.post("/step")
 def step_env(req: StepRequest):
     global env
     if env is None:
-        # Dynamically pull the task name, no more hardcoded 'pls_adopt_me'
         target_task = os.getenv("TASK_NAME", "2k_vs_200k")
         env = LinuxAdminEnv(task_name=target_task)
 
