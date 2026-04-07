@@ -64,7 +64,7 @@ class LinuxAdminEnv:
         self.task_name = task_name
         self.task_cfg = TASK_REGISTRY[task_name]
         self.history = []
-        self.current_score = 0.0
+        self.current_score = 0.5
 
         grader_path = REPO_ROOT / self.task_cfg["grader_path"]
         if not grader_path.exists():
@@ -134,7 +134,7 @@ class LinuxAdminEnv:
             check=True,
         )
 
-        self.current_score = 0.0
+        self.current_score = 0.5
         self.history = []
         
         return SysAdminObservation(

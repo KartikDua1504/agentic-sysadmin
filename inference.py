@@ -216,7 +216,7 @@ def main():
 
     obs = env.reset()
     history = []
-    current_score = 0.0
+    current_score = 0.5
 
     for step in range(1, MAX_STEPS + 1):
         

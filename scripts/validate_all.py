@@ -10,7 +10,7 @@ against each task environment to verify correctness of:
 
 Each task must:
 - Reach `done = True`
-- Achieve `score = 1.0`
+- Achieve `score = 0.99`
 
 If any task fails, the script exits immediately.
 
@@ -37,7 +37,7 @@ def run_validation(target_task=None):
 
     Each task maps to a sequence of shell commands representing a known-good solution.
     The environment executes these commands step-by-step and verifies:
-    - Final reward == 1.0
+    - Final reward == 0.99
     - Task marked as done by grader
 
     Args:
@@ -154,7 +154,7 @@ def run_validation(target_task=None):
         print(f"-> Task Done: {done}")
         print(f"-> Grader Reason: {reward.reasoning}")
         
-        if not done or reward.score != 1.0:
+        if not done or reward.score < 0.99:
             print(f"\n-> VALIDATION FAILED on {task_name}!")
             sys.exit(1)
         else:

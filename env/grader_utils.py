@@ -34,5 +34,9 @@ def hard_fail(msg: str):
     return 0.1, True, msg
 
 def clamp(score: float) -> float:
-    # Normalize score to [0,1] with 2 decimal precision
-    return max(0.0, min(1.0, round(score, 2)))
+    score = round(float(score), 2)
+    if score <= 0.01:
+        return 0.01
+    if score >= 0.99:
+        return 0.99
+    return score
