@@ -1,0 +1,10 @@
+Metadata-Version: 2.4
+Name: agentic-sysadmin
+Version: 1.0.0
+Summary: Linux system administration challenges for AI agents.
+Requires-Python: >=3.9
+Requires-Dist: openai>=1.0.0
+Requires-Dist: fastapi
+Requires-Dist: uvicorn
+Requires-Dist: gradio
+Requires-Dist: openenv-core

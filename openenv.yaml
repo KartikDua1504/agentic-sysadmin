@@ -1,16 +1,59 @@
-version: "1.0"
-name: "agentic-sysadmin"
-description: "Linux system administration challenges for AI agents."
+spec_version: 1
+name: agentic-sysadmin
+version: "0.1.0"
+description: "Linux system administration challenges for AI agents - debug, configure, and fix real sysadmin problems in a sandboxed environment."
+type: space
+runtime: fastapi
+app: server.app:app
+port: 7860
+
 tasks:
-  - name: "2k_vs_200k"
-    path: "tasks/2k_vs_200k"
-  - name: "authoritarian_ssh"
-    path: "tasks/authoritarian_ssh"
-  - name: "ls_cat_trivia"
-    path: "tasks/ls_cat_trivia"
-  - name: "math_is_not_mathing"
-    path: "tasks/math_is_not_mathing"
-  - name: "mmap_exhaustion"
-    path: "tasks/mmap_exhaustion"
-  - name: "pls_adopt_me"
-    path: "tasks/pls_adopt_me"
+  - id: 2k_vs_200k
+    name: "2K vs 200K"
+    description: "A service behaves differently with small (2KB) vs large (200KB) data. Debug buffering, limits, and resource handling issues."
+    difficulty: hard
+    max_steps: 40
+    reset_params:
+      task_name: "2k_vs_200k"
+
+  - id: authoritarian_ssh
+    name: "Authoritarian SSH"
+    description: "Fix an extremely strict SSH configuration that blocks legitimate access or enforces harsh security policies."
+    difficulty: easy
+    max_steps: 20
+    reset_params:
+      task_name: "authoritarian_ssh"
+
+  - id: ls_cat_trivia
+    name: "ls & cat Trivia"
+    description: "Challenge involving tricky behavior of ls, cat, file permissions, and coreutils commands."
+    difficulty: easy
+    max_steps: 25
+    reset_params:
+      task_name: "ls_cat_trivia"
+
+  - id: math_is_not_mathing
+    name: "Math Is Not Mathing"
+    description: "Debug a numerical or mathematical computation bug running in the Linux environment."
+    difficulty: hard
+    max_steps: 40
+    reset_params:
+      task_name: "math_is_not_mathing"
+
+  - id: mmap_exhaustion
+    name: "MMAP Exhaustion"
+    description: "Resolve virtual memory mapping (mmap) exhaustion and related resource limit issues."
+    difficulty: hard
+    max_steps: 40
+    reset_params:
+      task_name: "mmap_exhaustion"
+
+  - id: pls_adopt_me
+    name: "Pls Adopt Me"
+    description: "Handle orphaned processes, zombies, or process tree adoption problems in Linux."
+    difficulty: medium
+    max_steps: 30
+    reset_params:
+      task_name: "pls_adopt_me"
+
+tags: [sysadmin, linux, debugging, hackathon]
