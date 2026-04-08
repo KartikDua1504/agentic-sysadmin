@@ -157,41 +157,47 @@ def list_tasks():
     return [{"id": t} for t in AVAILABLE_TASKS]
 
 # =========================================================
-# THE EXPLICIT GRADERS (EXACTLY AS THE EMAIL REQUESTED)
+# GRADERS — GET + POST both supported
 # =========================================================
 def get_test_env(task_name):
     global env
     if env is None:
         env = LinuxAdminEnv(task_name=task_name)
-        env.reset()  # ← THE ONLY CHANGE
+        env.reset()
     return env
 
 @app.get("/grade/2k_vs_200k")
+@app.post("/grade/2k_vs_200k")
 def grade_endpoint_2k():
     score = max(0.01, min(0.99, logic_2k(get_test_env("2k_vs_200k"))))
     return {"score": score, "reward": score}
 
 @app.get("/grade/authoritarian_ssh")
+@app.post("/grade/authoritarian_ssh")
 def grade_endpoint_ssh():
     score = max(0.01, min(0.99, logic_ssh(get_test_env("authoritarian_ssh"))))
     return {"score": score, "reward": score}
 
 @app.get("/grade/ls_cat_trivia")
+@app.post("/grade/ls_cat_trivia")
 def grade_endpoint_trivia():
     score = max(0.01, min(0.99, logic_trivia(get_test_env("ls_cat_trivia"))))
     return {"score": score, "reward": score}
 
 @app.get("/grade/math_is_not_mathing")
+@app.post("/grade/math_is_not_mathing")
 def grade_endpoint_math():
     score = max(0.01, min(0.99, logic_math(get_test_env("math_is_not_mathing"))))
     return {"score": score, "reward": score}
 
 @app.get("/grade/mmap_exhaustion")
+@app.post("/grade/mmap_exhaustion")
 def grade_endpoint_mmap():
     score = max(0.01, min(0.99, logic_mmap(get_test_env("mmap_exhaustion"))))
     return {"score": score, "reward": score}
 
 @app.get("/grade/pls_adopt_me")
+@app.post("/grade/pls_adopt_me")
 def grade_endpoint_adopt():
     score = max(0.01, min(0.99, logic_adopt(get_test_env("pls_adopt_me"))))
     return {"score": score, "reward": score}
