@@ -1,62 +1,38 @@
 import os
 import uvicorn
-import logging
 import importlib
+import logging
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from env.core import LinuxAdminEnv
 from env.models import SysAdminAction
 
-# SET UP LOGGING SO WE CAN SPY ON THE AUTO-GRADER
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("sysadmin_api")
-
 app = FastAPI()
 env = None
 
 class StepRequest(BaseModel):
     command: str
 
-# DYNAMICALLY DETECT TASKS JUST LIKE THE OLD UI DID
-def get_available_tasks():
-    # Go up one level from 'server' to root, then into 'tasks'
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    tasks_dir = os.path.join(base_dir, "tasks")
-    if os.path.exists(tasks_dir):
-        # List all directories in tasks/ that don't start with __
-        return [d for d in os.listdir(tasks_dir) if os.path.isdir(os.path.join(tasks_dir, d)) and not d.startswith("__")]
-    return []
-
-AVAILABLE_TASKS = get_available_tasks()
-logger.info(f"🚀 SERVER BOOT: Dynamically detected {len(AVAILABLE_TASKS)} tasks: {AVAILABLE_TASKS}")
+AVAILABLE_TASKS = [
+    "2k_vs_200k", "authoritarian_ssh", "ls_cat_trivia",
+    "math_is_not_mathing", "mmap_exhaustion", "pls_adopt_me"
+]
 
 @app.get("/")
 def read_root():
-    logger.info("📡 GET / was called")
-    return {"message": "Agentic Sysadmin API is running.", "tasks_detected": AVAILABLE_TASKS}
-
-@app.head("/reset")
-def reset_head():
-    return {"status": "ok"}
-
-@app.get("/reset")
-def reset_get():
-    return {"status": "ok"}
+    return {"message": "API running", "tasks": AVAILABLE_TASKS}
 
 @app.post("/reset")
 async def reset_post(request: Request):
     global env
     target_task = os.getenv("TASK_NAME", "2k_vs_200k")
-
     try:
         body = await request.json()
-        logger.info(f"📥 POST /reset received payload from grader: {body}")
         if "task_name" in body:
             target_task = body["task_name"]
-    except Exception as e:
-        logger.warning(f"⚠️ POST /reset hit, but no JSON body was parsed: {e}")
-
-    logger.info(f"🔄 Initializing environment for task -> {target_task}")
+    except:
+        pass
     env = LinuxAdminEnv(task_name=target_task)
     env.reset()
     return {"status": "ok", "task_loaded": target_task}
@@ -65,72 +41,63 @@ async def reset_post(request: Request):
 def step_env(req: StepRequest):
     global env
     if env is None:
-        target_task = os.getenv("TASK_NAME", "2k_vs_200k")
-        logger.info(f"⚠️ POST /step called before /reset. Booting default task -> {target_task}")
-        env = LinuxAdminEnv(task_name=target_task)
-
-    logger.info(f"🛠️ Grader executing command -> {req.command}")
+        env = LinuxAdminEnv(task_name=os.getenv("TASK_NAME", "2k_vs_200k"))
     obs, reward, done, _ = env.step(SysAdminAction(command=req.command))
-
-    # Strictly clamp bounds to (0.01, 0.99)
-    safe_score = float(reward.score)
-    if safe_score <= 0.0:
-        safe_score = 0.01
-    elif safe_score >= 1.0:
-        safe_score = 0.99
-
-    logger.info(f"✅ Step complete. Score -> {safe_score} | Done -> {done}")
-
+    safe_score = max(0.01, min(0.99, float(reward.score)))
     return {
         "cwd": obs.cwd,
         "stdout": obs.stdout,
         "stderr": obs.stderr,
         "exit_code": obs.exit_code,
         "score": safe_score,
-        "done": done,
+        "done": done
     }
-
-@app.get("/state")
-def get_state():
-    return {"status": "ok"}
 
 @app.get("/tasks")
 def list_tasks():
-    logger.info("📡 GET /tasks was called by the grader")
-    # THE SCHEME FIX: Must return a list of dictionaries with 'id' keys!
-    formatted_tasks = [{"id": task_name} for task_name in AVAILABLE_TASKS]
-    return formatted_tasks
+    return [{"id": t} for t in AVAILABLE_TASKS]
 
-# ==========================================
-# THE CHEAT CODE FROM THE EMAIL
-# ==========================================
-@app.get("/grade/{task_name}")
-def grade_task(task_name: str):
+# =========================================================
+# THE EXPLICIT DUMB GRADERS (EXACTLY MATCHING THE EMAIL)
+# =========================================================
+def _grade_task(task_name: str):
     global env
-    
-    # If the grader pings this before /reset, return baseline
-    if env is None:
-        logger.warning(f"⚠️ /grade/{task_name} called but env is None. Returning baseline.")
-        return {"score": 0.01, "reward": 0.01, "done": False, "error": "Env not initialized"}
-
     try:
-        # Dynamically load your existing grader.py files! No restructuring needed.
+        # Gracefully handle if the grader pings this without hitting /reset first
+        test_env = env
+        if test_env is None:
+            test_env = LinuxAdminEnv(task_name=task_name)
+        
         grader_module = importlib.import_module(f"tasks.{task_name}.grader")
+        raw_score, _, _ = grader_module.grade(test_env, "")
         
-        # Run your logic (passing an empty string for last_command since it's just a health check)
-        raw_score, is_done, reason = grader_module.grade(env, "")
-        
-        # Exact mathematical clamping requested by the dev team
         score = max(0.01, min(0.99, float(raw_score)))
         
-        logger.info(f"🏆 Auto-Grader pulled score for {task_name}: {score} | Done: {is_done}")
-        
-        # Return exactly the JSON format they want
-        return {"score": score, "reward": score, "done": is_done, "reason": reason}
-        
+        # STRICT SCHEMA: ONLY RETURN SCORE AND REWARD. NO EXTRA KEYS.
+        return {"score": score, "reward": score}
     except Exception as e:
-        logger.error(f"❌ Grader error for {task_name}: {e}")
-        return {"score": 0.01, "reward": 0.01, "done": False, "error": str(e)}
+        logger.error(f"Grader error: {e}")
+        # STRICT SCHEMA ON ERROR: NEVER RETURN AN ERROR KEY.
+        return {"score": 0.01, "reward": 0.01}
+
+# Explicitly defining each route so the auto-grader can't possibly miss them
+@app.get("/grade/2k_vs_200k")
+def grade_2k(): return _grade_task("2k_vs_200k")
+
+@app.get("/grade/authoritarian_ssh")
+def grade_ssh(): return _grade_task("authoritarian_ssh")
+
+@app.get("/grade/ls_cat_trivia")
+def grade_trivia(): return _grade_task("ls_cat_trivia")
+
+@app.get("/grade/math_is_not_mathing")
+def grade_math(): return _grade_task("math_is_not_mathing")
+
+@app.get("/grade/mmap_exhaustion")
+def grade_mmap(): return _grade_task("mmap_exhaustion")
+
+@app.get("/grade/pls_adopt_me")
+def grade_adopt(): return _grade_task("pls_adopt_me")
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=7860)
