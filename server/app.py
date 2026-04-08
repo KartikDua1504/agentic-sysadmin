@@ -161,7 +161,10 @@ def list_tasks():
 # =========================================================
 def get_test_env(task_name):
     global env
-    return env if env else LinuxAdminEnv(task_name=task_name)
+    if env is None:
+        env = LinuxAdminEnv(task_name=task_name)
+        env.reset()  # ← THE ONLY CHANGE
+    return env
 
 @app.get("/grade/2k_vs_200k")
 def grade_endpoint_2k():
