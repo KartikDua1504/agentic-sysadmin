@@ -1,6 +1,40 @@
-spec_version: 1
-name: agentic-sysadmin
-type: environment
-runtime: python
-app: server.app:app
-port: 7860
+version: "1.0"
+name: "agentic-sysadmin"
+description: "Linux system administration challenges for AI agents."
+
+tasks:
+  - id: "2k_vs_200k"
+    path: "tasks/2k_vs_200k"
+    graders:
+      - type: "python"
+        entrypoint: "tasks/2k_vs_200k/grader.py"
+
+  - id: "authoritarian_ssh"
+    path: "tasks/authoritarian_ssh"
+    graders:
+      - type: "python"
+        entrypoint: "tasks/authoritarian_ssh/grader.py"
+
+  - id: "ls_cat_trivia"
+    path: "tasks/ls_cat_trivia"
+    graders:
+      - type: "python"
+        entrypoint: "tasks/ls_cat_trivia/grader.py"
+
+  - id: "math_is_not_mathing"
+    path: "tasks/math_is_not_mathing"
+    graders:
+      - type: "python"
+        entrypoint: "tasks/math_is_not_mathing/grader.py"
+
+  - id: "mmap_exhaustion"
+    path: "tasks/mmap_exhaustion"
+    graders:
+      - type: "python"
+        entrypoint: "tasks/mmap_exhaustion/grader.py"
+
+  - id: "pls_adopt_me"
+    path: "tasks/pls_adopt_me"
+    graders:
+      - type: "python"
+        entrypoint: "tasks/pls_adopt_me/grader.py"
