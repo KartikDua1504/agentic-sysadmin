@@ -1,6 +1,7 @@
 import os
 import uvicorn
 import logging
+import importlib
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
 from env.core import LinuxAdminEnv
@@ -96,7 +97,40 @@ def get_state():
 @app.get("/tasks")
 def list_tasks():
     logger.info("📡 GET /tasks was called by the grader")
-    return AVAILABLE_TASKS
+    # THE SCHEME FIX: Must return a list of dictionaries with 'id' keys!
+    formatted_tasks = [{"id": task_name} for task_name in AVAILABLE_TASKS]
+    return formatted_tasks
+
+# ==========================================
+# THE CHEAT CODE FROM THE EMAIL
+# ==========================================
+@app.get("/grade/{task_name}")
+def grade_task(task_name: str):
+    global env
+    
+    # If the grader pings this before /reset, return baseline
+    if env is None:
+        logger.warning(f"⚠️ /grade/{task_name} called but env is None. Returning baseline.")
+        return {"score": 0.01, "reward": 0.01, "done": False, "error": "Env not initialized"}
+
+    try:
+        # Dynamically load your existing grader.py files! No restructuring needed.
+        grader_module = importlib.import_module(f"tasks.{task_name}.grader")
+        
+        # Run your logic (passing an empty string for last_command since it's just a health check)
+        raw_score, is_done, reason = grader_module.grade(env, "")
+        
+        # Exact mathematical clamping requested by the dev team
+        score = max(0.01, min(0.99, float(raw_score)))
+        
+        logger.info(f"🏆 Auto-Grader pulled score for {task_name}: {score} | Done: {is_done}")
+        
+        # Return exactly the JSON format they want
+        return {"score": score, "reward": score, "done": is_done, "reason": reason}
+        
+    except Exception as e:
+        logger.error(f"❌ Grader error for {task_name}: {e}")
+        return {"score": 0.01, "reward": 0.01, "done": False, "error": str(e)}
 
 def main():
     uvicorn.run(app, host="0.0.0.0", port=7860)
