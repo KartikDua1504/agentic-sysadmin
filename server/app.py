@@ -104,7 +104,7 @@ def _run_grader(task_name: str) -> dict:
     """
     try:
         env = SysAdminEnvironment()
-        env.reset(task_name=task_name)
+        env._load_task(task_name)
         score, _, reason = env.grader(env, "submit")
         safe_score = max(0.01, min(0.99, float(score)))
         env.close()
