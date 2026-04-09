@@ -1,15 +1,27 @@
-# Base image: stable Ubuntu LTS for reproducible sysadmin environment
+# ==========================================================================
+# Agentic Sysadmin — Container Image
+#
+# Base:    Ubuntu 22.04 LTS (stable, reproducible package set)
+# Purpose: Provides a realistic Linux environment where AI agents must
+#          diagnose and repair deliberately broken system configurations.
+#
+# The image ships with a broad set of sysadmin tools so that the agent
+# has everything it needs — plus deliberate "noise" packages (cowsay,
+# fortune, sl) that test the agent's ability to stay focused.
+# ==========================================================================
+
 FROM ubuntu:22.04
 
-# Disable interactive prompts + ensure clean Python output
+# -- Build-time configuration ---------------------------------------------
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONUNBUFFERED=1
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Install system dependencies
-# Grouped by purpose for clarity and maintainability
+# -- System packages -------------------------------------------------------
+# Grouped by purpose for maintainability.  Each group is documented so
+# that reviewers can understand why every package is present.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    # Python runtime + build tooling
+    # --- Python runtime and native extension build chain ---
     python3 \
     python3-pip \
     python3-venv \
@@ -20,12 +32,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     g++ \
     make \
     \
-    # Low-level debugging / tracing (used by tasks)
+    # --- Low-level debugging and tracing (required by tasks) ---
     gdb \
     strace \
     ltrace \
     \
-    # Core sysadmin utilities (baseline environment)
+    # --- Core sysadmin utilities (baseline toolset) ---
     lsof \
     procps \
     util-linux \
@@ -41,7 +53,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     psmisc \
     systemd \
     \
-    # Networking tools (diagnostics + failure scenarios)
+    # --- Networking diagnostics ---
     iproute2 \
     net-tools \
     dnsutils \
@@ -50,7 +62,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     tzdata \
     \
-    # Intentional noise / red herrings for agent robustness testing
+    # --- Noise / red-herring packages (agent robustness testing) ---
     cowsay \
     fortune \
     sl \
@@ -63,21 +75,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     tmux \
     neofetch \
     \
-    # Cleanup to reduce image size
     && rm -rf /var/lib/apt/lists/*
 
-# Application working directory
+# -- Application directory -------------------------------------------------
 WORKDIR /app
 
-# Install Python dependencies separately to leverage Docker layer caching
+# -- Python dependencies ---------------------------------------------------
+# Copied separately from the rest of the source to leverage Docker's
+# build cache: re-installing deps only when requirements.txt changes.
 COPY requirements.txt .
 RUN python3 -m pip install --no-cache-dir -r requirements.txt
 
-# Copy full project (tasks, env, server, etc.)
+# -- Application source ----------------------------------------------------
 COPY . .
 
-# Expose port used by FastAPI + Gradio app
+# -- Network ---------------------------------------------------------------
+# Port 7860 is the Hugging Face Spaces default for custom containers.
 EXPOSE 7860
 
-# Start ASGI server (serves both API + UI)
+# -- Entry point ------------------------------------------------------------
+# Start the OpenEnv-compliant ASGI server.
 CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
