@@ -265,25 +265,18 @@ def parse_model_action(text: str) -> str:
 # Main loop
 # ---------------------------------------------------------------------------
 
-def main() -> None:
+from env.core import AVAILABLE_TASKS
+
+def run_task(client: OpenAI, env: SysAdminEnvironment, task_name: str) -> None:
     """Run the agent loop for a single task.
 
-    Reads ``TARGET_TASK`` from the environment and executes the full
-    reset → step → … → submit lifecycle, emitting structured logs that
-    the evaluation pipeline parses for scoring.
+    Executes the full reset → step → … → submit lifecycle, emitting
+    structured logs that the evaluation pipeline parses for scoring.
     """
-    if not API_KEY:
-        print("Missing HF_TOKEN or API_KEY")
-        return
+    print(f"[START] task={task_name}", flush=True)
 
-    print(f"[START] task={TARGET_TASK}", flush=True)
-
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
-
-    env = SysAdminEnvironment()
-    brief = get_task_brief(TARGET_TASK)
-
-    obs = env.reset(task_name=TARGET_TASK)
+    brief = get_task_brief(task_name)
+    obs = env.reset(task_name=task_name)
     history: list[str] = []
     current_score: float = 0.5
 
@@ -299,7 +292,7 @@ def main() -> None:
             raw = call_model(client, messages)
         except Exception as e:
             print(f"[{step}] → Error calling model: {e}")
-            print(f"[END] task={TARGET_TASK} score={current_score} steps={step}", flush=True)
+            print(f"[END] task={task_name} score={current_score} steps={step}", flush=True)
             return
 
         cmd = parse_model_action(raw)
@@ -320,7 +313,7 @@ def main() -> None:
         time.sleep(2.0)
 
         if obs.done:
-            print(f"[END] task={TARGET_TASK} score={current_score} steps={step}", flush=True)
+            print(f"[END] task={task_name} score={current_score} steps={step}", flush=True)
             return
 
     # Budget exhausted without explicit submission.
@@ -329,7 +322,19 @@ def main() -> None:
         current_score = 0.01
     elif current_score >= 1.0:
         current_score = 0.99
-    print(f"[END] task={TARGET_TASK} score={current_score} steps={MAX_STEPS}", flush=True)
+    print(f"[END] task={task_name} score={current_score} steps={MAX_STEPS}", flush=True)
+
+def main() -> None:
+    """Run the inference loop over all available tasks."""
+    if not API_KEY:
+        print("Missing HF_TOKEN or API_KEY")
+        return
+
+    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    env = SysAdminEnvironment()
+
+    for task_name in AVAILABLE_TASKS:
+        run_task(client, env, task_name)
 
 
 if __name__ == "__main__":
