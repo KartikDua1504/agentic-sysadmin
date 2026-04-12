@@ -93,17 +93,37 @@ We evaluate agents across 6 strict scenarios. There is no partial credit for sim
 > *Observation: Weaker models can still solve surface-level issues, but they tend to stall on the harder tasks. Under the updated graders, failures no longer collapse to 0.0; instead, they remain near the neutral baseline until the model makes real progress. The hardest tasks still expose brittle reasoning, especially when the model hallucinates accounts, misreads diagnostic output, or fixes the wrong absolute path.*
 
 ---
-## Quickstart & Validation
+## Quickstart & Usage
 
-**1. Installation (Using `uv`)**
+### 1. Installation (Using `uv`)
 ```bash
-git clone [https://huggingface.co/spaces/f0rsworN/agentic-sysadmin](https://huggingface.co/spaces/f0rsworN/agentic-sysadmin)
+git clone https://huggingface.co/spaces/f0rsworN/agentic-sysadmin
 cd agentic-sysadmin
 uv venv
 source .venv/bin/activate
 uv sync
 ```
 
-**Tutorial**
-For a tutorial, you can view or download the walkthrough video at this URL:
+### 2. Testing a Single Task (`run_task.py`)
+To quickly test an agent against a specific task without launching the full server, run the standalone runner. This is the best way to debug or validate a specific scenario:
+```bash
+python run_task.py <folder_name_of_task>
+```
+*Example:* `python run_task.py 2k_vs_200k`
+
+### 3. Running the Full Evaluation (`inference.py`)
+To run the complete benchmark evaluation (useful for reproducing baseline scores across all tasks):
+```bash
+python inference.py
+```
+*Note: This requires an `OPENAI_API_KEY` set in your `.env` file.*
+
+### 4. Starting the OpenEnv Server
+The server acts as an OpenEnv spec-compliant endpoint. It doesn't run testing itself but exposes the sandbox to external SRE agent runners:
+```bash
+uvicorn server.app:app --host 0.0.0.0 --port 8000
+```
+
+### 5. Video Tutorial
+For a complete step-by-step walkthrough of the project, including how tasks work under the hood, you can view or download the tutorial video here:
 [https://drive.google.com/file/d/1IQbm7iBbbdvCD_F5PEqzEUhRcJn56cGA/view?usp=sharing](https://drive.google.com/file/d/1IQbm7iBbbdvCD_F5PEqzEUhRcJn56cGA/view?usp=sharing)
