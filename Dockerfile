@@ -59,6 +59,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     dnsutils \
     iputils-ping \
     openssh-client \
+    openssh-server \
     ca-certificates \
     tzdata \
     \

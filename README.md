@@ -102,3 +102,8 @@ cd agentic-sysadmin
 uv venv
 source .venv/bin/activate
 uv sync
+```
+
+**Tutorial**
+For a tutorial, you can view or download the walkthrough video at this URL:
+[https://drive.google.com/file/d/1IQbm7iBbbdvCD_F5PEqzEUhRcJn56cGA/view?usp=sharing](https://drive.google.com/file/d/1IQbm7iBbbdvCD_F5PEqzEUhRcJn56cGA/view?usp=sharing)

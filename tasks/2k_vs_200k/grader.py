@@ -1,6 +1,5 @@
 from env.grader_utils import run, exists, contains, hard_fail, clamp
 from env.grader_common import BASE_SCORE, add, sub, reason_str, clamp_score
-import os
 
 def grade(env, last_command):
     score = BASE_SCORE
@@ -15,8 +14,9 @@ def grade(env, last_command):
     if not contains(env, healthcheck_path, "for i in range(10)"):
         return hard_fail("CRITICAL PENALTY: healthcheck.py tampered with.")
 
-    # Functional Validation: Preload must behave correctly
-    preload_fixed = exists(env, preload_path) and os.path.getsize(preload_path) == 0
+    # Functional Validation: Preload must exist and be empty
+    preload_size = run(env, f"stat -c '%s' {preload_path}").strip()
+    preload_fixed = exists(env, preload_path) and preload_size == "0"
     if preload_fixed:
         score = add(score, 0.25)
         reasons.append("Removed offending preload flag")
