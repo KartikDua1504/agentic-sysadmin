@@ -40,9 +40,6 @@ Observed Behavior:
 Root Cause:
 - Command hijacking via PATH precedence
 
-Design Note:
-- `grep` is also hijacked but deliberately omitted from the initial task brief. This simulates real-world, non-exhaustive user tickets and tests if the agent can investigate the broader environment (/usr/local/bin) rather than blindly following an incomplete checklist.
-
 ----------------------------------------
 4. MATH_IS_NOT_MATHING
 ----------------------------------------
